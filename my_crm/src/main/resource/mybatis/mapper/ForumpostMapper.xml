@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ujiuye.usual.mapper.ForumpostMapper" >
+
+  <!--添加评论-->
+  <insert id="insertPin">
+        insert into evaluate(forum_fk,emp_fk4,evaid_fk,evacontent,updatetime,evatime) values
+        <if test="state == 1">
+          (#{evaluate.forumFk},#{evaluate.empFk4},#{evaluate.evaidFk},#{evaluate.evacontent},#{evaluate.updatetime},#{evaluate.evatime})
+        </if>
+        <if test="state != 1">
+          (#{evaluate.forumFk},#{evaluate.empFk4},null,#{evaluate.evacontent},#{evaluate.updatetime},#{evaluate.evatime})
+        </if>
+  </insert>
+
+
+  <!--查询全部评论-->
+  <select id="getComment" resultMap="getCommentMap">
+        select * from forumpost where forumid=#{id}
+  </select>
+  <!--根据帖子的用户外键和评论外键，查询它下面的所有评论-->
+  <resultMap id="getCommentMap" type="Forumpost" extends="BaseResultMap">
+      <association property="employee" column="emp_fk3" javaType="Employee"
+                   select="com.ujiuye.emp.mapper.EmployeeMapper.getEmpByEid"></association>
+      <collection property="evaluate" column="forumid" ofType="Evaluate"
+                  select="getEvaluate"></collection>
+  </resultMap>
+  <select id="getEvaluate" resultMap="getEvaluateMap">
+        select * from evaluate where forum_fk=#{id}
+  </select>
+  <!--查询每条评论下面的全部回复-->
+  <resultMap id="getEvaluateMap" type="Evaluate">
+    <!--数据库字段和bean层属性名不相同的字段，要给手动赋值-->
+    <id property="evaid" column="evaid"></id>
+    <result property="empFk4" column="emp_fk4"></result>
+    <result property="forumFk" column="forum_fk"></result>
+    <result property="evaidFk" column="evaid_fk"></result>
+    <association property="employee" column="emp_fk4" javaType="Employee"
+                 select="com.ujiuye.emp.mapper.EmployeeMapper.getEmpByEid"></association>
+    <collection property="evaluate" column="evaid" ofType="Evaluate"
+                select="getReply"></collection>
+  </resultMap>
+  <select id="getReply" resultMap="getEvaluateMap">
+        select * from evaluate where evaid_fk=#{id}
+  </select>
+
+
+  <!--查询全部论坛帖子-->
+  <select id="getAllForum" resultType="Forumpost">
+        select * from forumpost order by createtime desc
+  </select>
+
+
+
+  <resultMap id="BaseResultMap" type="com.ujiuye.usual.bean.Forumpost" >
+    <id column="forumid" property="forumid" jdbcType="INTEGER" />
+    <result column="forumtitle" property="forumtitle" jdbcType="VARCHAR" />
+    <result column="forumcontent" property="forumcontent" jdbcType="VARCHAR" />
+    <result column="emp_fk3" property="empFk3" jdbcType="INTEGER" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    forumid, forumtitle, forumcontent, emp_fk3, createtime, status
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from forumpost
+    where forumid = #{forumid,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from forumpost
+    where forumid = #{forumid,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.ujiuye.usual.bean.Forumpost" >
+    insert into forumpost (forumid, forumtitle, forumcontent, 
+      emp_fk3, createtime, status
+      )
+    values (#{forumid,jdbcType=INTEGER}, #{forumtitle,jdbcType=VARCHAR}, #{forumcontent,jdbcType=VARCHAR}, 
+      #{empFk3,jdbcType=INTEGER}, #{createtime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.ujiuye.usual.bean.Forumpost" >
+    insert into forumpost
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="forumid != null" >
+        forumid,
+      </if>
+      <if test="forumtitle != null" >
+        forumtitle,
+      </if>
+      <if test="forumcontent != null" >
+        forumcontent,
+      </if>
+      <if test="empFk3 != null" >
+        emp_fk3,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="forumid != null" >
+        #{forumid,jdbcType=INTEGER},
+      </if>
+      <if test="forumtitle != null" >
+        #{forumtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="forumcontent != null" >
+        #{forumcontent,jdbcType=VARCHAR},
+      </if>
+      <if test="empFk3 != null" >
+        #{empFk3,jdbcType=INTEGER},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ujiuye.usual.bean.Forumpost" >
+    update forumpost
+    <set >
+      <if test="forumtitle != null" >
+        forumtitle = #{forumtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="forumcontent != null" >
+        forumcontent = #{forumcontent,jdbcType=VARCHAR},
+      </if>
+      <if test="empFk3 != null" >
+        emp_fk3 = #{empFk3,jdbcType=INTEGER},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+    </set>
+    where forumid = #{forumid,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ujiuye.usual.bean.Forumpost" >
+    update forumpost
+    set forumtitle = #{forumtitle,jdbcType=VARCHAR},
+      forumcontent = #{forumcontent,jdbcType=VARCHAR},
+      emp_fk3 = #{empFk3,jdbcType=INTEGER},
+      createtime = #{createtime,jdbcType=TIMESTAMP},
+      status = #{status,jdbcType=INTEGER}
+    where forumid = #{forumid,jdbcType=INTEGER}
+  </update>
+</mapper>

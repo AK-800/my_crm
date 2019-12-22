@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ujiuye.usual.mapper.BaoxiaoMapper" >
+
+  <!--修改驳回和未审批的订单-->
+  <update id="updateBx">
+    update baoxiao set paymode=#{paymode},totalmoney=#{totalmoney},bxtime=#{bxtime},bxremark=#{bxremark},bxstatus=#{bxstatus}  where bxid=#{bxid}
+  </update>
+
+
+  <!--修改报销单的状态，同意审批或者驳回审批-->
+  <update id="updateBxStatus">
+        update baoxiao set bxstatus=#{bxstatus} where bxid like #{bxid}
+  </update>
+
+  <!--添加报销单的审批回复-->
+  <insert id="addBxreply">
+        insert into baoxiaoreply values(null,#{content},#{replytime},#{baoxiaoFk},#{status})
+  </insert>
+
+
+  <!--添加报销单-->
+  <insert id="addBx">
+    insert into baoxiao values(#{bxid},#{paymode},#{totalmoney},#{bxtime},#{bxremark},#{bxstatus},#{empFk},null)
+  </insert>
+
+
+  <!--查询报销的全部种类-->
+  <select id="getPaymode" resultType="Expendituretype">
+        select * from expendituretype
+  </select>
+
+
+  <!--查询全部的报销单-->
+  <select id="getAllBx" resultMap="getAllBxMap">
+        select * from baoxiao order by bxtime desc
+  </select>
+  <resultMap id="getAllBxMap" type="baoxiao" extends="BaseResultMap">
+      <association property="employee" column="emp_fk" javaType="Employee"
+                   select="com.ujiuye.emp.mapper.EmployeeMapper.getEmpByEid"></association>
+      <association property="expendituretype" column="paymode" javaType="Expendituretype"
+                   select="com.ujiuye.usual.mapper.ExpendituretypeMapper.getEx"></association>
+  </resultMap>
+
+  <!--根据报销单的ID，查询单个报销单-->
+  <select id="queryBx" resultMap="queryBxMap">
+        select * from baoxiao where bxid=#{bxid}
+  </select>
+  <resultMap id="queryBxMap" type="Baoxiao" extends="BaseResultMap">
+      <association property="expendituretype" column="paymode" javaType="Expendituretype"
+                   select="com.ujiuye.usual.mapper.ExpendituretypeMapper.getEx"></association>
+    <collection property="baoxiaoreply" column="bxid" ofType="Baoxiaoreply"
+                select="com.ujiuye.usual.mapper.BaoxiaoreplyMapper.getBxreply"></collection>
+  </resultMap>
+
+  <!--查询登录用户的全部报销-->
+  <select id="getMyBx" resultMap="getMyBxMap">
+        select * from baoxiao where emp_fk=#{id}
+  </select>
+  <resultMap id="getMyBxMap" type="Baoxiao" extends="BaseResultMap">
+    <association property="employee" column="emp_fk" javaType="Employee"
+                 select="com.ujiuye.emp.mapper.EmployeeMapper.getEmpByEid"></association>
+  </resultMap>
+
+  <resultMap id="BaseResultMap" type="com.ujiuye.usual.bean.Baoxiao" >
+    <id column="bxid" property="bxid" jdbcType="VARCHAR" />
+    <result column="paymode" property="paymode" jdbcType="INTEGER" />
+    <result column="totalmoney" property="totalmoney" jdbcType="DOUBLE" />
+    <result column="bxtime" property="bxtime" jdbcType="DATE" />
+    <result column="bxremark" property="bxremark" jdbcType="VARCHAR" />
+    <result column="bxstatus" property="bxstatus" jdbcType="INTEGER" />
+    <result column="emp_fk" property="empFk" jdbcType="INTEGER" />
+    <result column="result" property="result" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    bxid, paymode, totalmoney, bxtime, bxremark, bxstatus, emp_fk, result
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from baoxiao
+    where bxid = #{bxid,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from baoxiao
+    where bxid = #{bxid,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.ujiuye.usual.bean.Baoxiao" >
+    insert into baoxiao (bxid, paymode, totalmoney, 
+      bxtime, bxremark, bxstatus, 
+      emp_fk, result)
+    values (#{bxid,jdbcType=VARCHAR}, #{paymode,jdbcType=INTEGER}, #{totalmoney,jdbcType=DOUBLE}, 
+      #{bxtime,jdbcType=DATE}, #{bxremark,jdbcType=VARCHAR}, #{bxstatus,jdbcType=INTEGER}, 
+      #{empFk,jdbcType=INTEGER}, #{result,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ujiuye.usual.bean.Baoxiao" >
+    insert into baoxiao
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="bxid != null" >
+        bxid,
+      </if>
+      <if test="paymode != null" >
+        paymode,
+      </if>
+      <if test="totalmoney != null" >
+        totalmoney,
+      </if>
+      <if test="bxtime != null" >
+        bxtime,
+      </if>
+      <if test="bxremark != null" >
+        bxremark,
+      </if>
+      <if test="bxstatus != null" >
+        bxstatus,
+      </if>
+      <if test="empFk != null" >
+        emp_fk,
+      </if>
+      <if test="result != null" >
+        result,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="bxid != null" >
+        #{bxid,jdbcType=VARCHAR},
+      </if>
+      <if test="paymode != null" >
+        #{paymode,jdbcType=INTEGER},
+      </if>
+      <if test="totalmoney != null" >
+        #{totalmoney,jdbcType=DOUBLE},
+      </if>
+      <if test="bxtime != null" >
+        #{bxtime,jdbcType=DATE},
+      </if>
+      <if test="bxremark != null" >
+        #{bxremark,jdbcType=VARCHAR},
+      </if>
+      <if test="bxstatus != null" >
+        #{bxstatus,jdbcType=INTEGER},
+      </if>
+      <if test="empFk != null" >
+        #{empFk,jdbcType=INTEGER},
+      </if>
+      <if test="result != null" >
+        #{result,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ujiuye.usual.bean.Baoxiao" >
+    update baoxiao
+    <set >
+      <if test="paymode != null" >
+        paymode = #{paymode,jdbcType=INTEGER},
+      </if>
+      <if test="totalmoney != null" >
+        totalmoney = #{totalmoney,jdbcType=DOUBLE},
+      </if>
+      <if test="bxtime != null" >
+        bxtime = #{bxtime,jdbcType=DATE},
+      </if>
+      <if test="bxremark != null" >
+        bxremark = #{bxremark,jdbcType=VARCHAR},
+      </if>
+      <if test="bxstatus != null" >
+        bxstatus = #{bxstatus,jdbcType=INTEGER},
+      </if>
+      <if test="empFk != null" >
+        emp_fk = #{empFk,jdbcType=INTEGER},
+      </if>
+      <if test="result != null" >
+        result = #{result,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where bxid = #{bxid,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ujiuye.usual.bean.Baoxiao" >
+    update baoxiao
+    set paymode = #{paymode,jdbcType=INTEGER},
+      totalmoney = #{totalmoney,jdbcType=DOUBLE},
+      bxtime = #{bxtime,jdbcType=DATE},
+      bxremark = #{bxremark,jdbcType=VARCHAR},
+      bxstatus = #{bxstatus,jdbcType=INTEGER},
+      emp_fk = #{empFk,jdbcType=INTEGER},
+      result = #{result,jdbcType=VARCHAR}
+    where bxid = #{bxid,jdbcType=VARCHAR}
+  </update>
+</mapper>

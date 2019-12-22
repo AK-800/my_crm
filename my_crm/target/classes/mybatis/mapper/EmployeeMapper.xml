@@ -1,0 +1,41 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujiuye.emp.mapper.EmployeeMapper">
+
+    <!--查询全部的员工-->
+    <select id="getAllEmp" resultMap="getAllEmpMap">
+        select * from employee
+    </select>
+    <resultMap id="getAllEmpMap" type="Employee">
+        <id property="eid" column="eid"></id>
+        <result property="pFk" column="p_fk"></result>
+        <result property="dFk" column="d_fk"></result>
+        <result property="lFk" column="l_fk"></result>
+        <association property="position" column="p_fk" javaType="Position"
+                     select="com.ujiuye.emp.mapper.PositionMapper.getPosition"></association>
+        <association property="dept" column="d_fk" javaType="Dept"
+                     select="com.ujiuye.emp.mapper.DeptMapper.getDept"></association>
+    </resultMap>
+
+
+
+    <!--登录验证-->
+    <select id="login" resultType="Employee">
+        select * from employee where eid=#{eid} and password=#{password}
+    </select>
+
+   <!-- 根据部门编号查询员工-->
+    <select id="getEmpByDept" resultType="Employee">
+        select * from employee where d_fk=#{id}
+    </select>
+    
+    <select id="getEmpByP_fk" resultType="Employee">
+        select * from employee where p_fk=#{p_fk}
+    </select>
+
+    <!--根据id查询用户-->
+    <select id="getEmpByEid" resultType="Employee">
+        select * from employee where eid=#{eid}
+    </select>
+</mapper>

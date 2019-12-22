@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujiuye.cus.mapper.CustomerMapper">
+
+    <!-- 根据选择的条件查询用户数据-->
+    <select id="getCustomerByCond" resultType="Customer">
+        select * from customer
+        <where>
+            <if test="cid == 0">
+                 companyperson like "%"#{keyword}"%" or comname like "%"#{keyword}"%"
+            </if>
+            <if test="cid == 1">
+                comname like "%"#{keyword}"%"
+            </if>
+            <if test="cid == 2">
+                companyperson like "%"#{keyword}"%"
+            </if>
+            <if test="oid == 1">
+                order by id desc
+            </if>
+            <if test="oid == 2">
+                order by addtime desc
+            </if>
+        </where>
+    </select>
+
+    <insert id="addCustomer">
+        insert into customer values(null,#{comname},#{companyperson},#{comaddress},
+        #{comphone},#{camera},#{present},#{remark},#{addtime});
+    </insert>
+
+    <!--查询语句的返回类型必须要写-->
+    <select id="getAllCustomer" resultType="Customer">
+        select * from customer
+    </select>
+
+    <select id="searchCustomer01" resultType="Customer">
+        select * from customer
+        <if test="keyword != null">
+            where comname like "%"#{keyword}"%" or companyperson like "%"#{keyword}"%"
+        </if>
+        <if test="oid == 1">
+            order by id asc
+        </if>
+    </select>
+
+    <!-- 查询单个用户-->
+    <select id="getCustomer" resultType="Customer">
+        select * from customer where id=#{id}
+    </select>
+
+    <!-- 修改用户信息 -->
+    <update id="updateCustomer">
+        update customer set comname=#{comname},companyperson=#{companyperson},comaddress=#{comaddress},comphone=#{comphone},
+        camera=#{camera},present=#{present},remark=#{remark} where id=#{id}
+
+    </update>
+
+    <!-- 分页查询-->
+    <select id="getCustomerByPage" resultType="Customer">
+        select * from customer order by id asc limit #{startPage},#{size}
+    </select>
+
+    <!--获取数据总条数-->
+    <select id="getCount" resultType="int">
+        select count(*) from customer
+    </select>
+
+    <!-- 批量删除-->
+    <delete id="batchDelete">
+        delete from customer where id=#{id}
+    </delete>
+</mapper>

@@ -1,0 +1,113 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujiuye.pro.mapper.ProjectMapper">
+
+    <!--获取有需求文档的项目(功能管理)-->
+    <select id="getProByFun" resultType="Project">
+        select * from project where pid in(select id from analysis)
+    </select>
+
+
+    <!--批量删除项目信息-->
+    <delete id="batchDelPro" parameterType="java.util.List">
+        delete from project where pid in
+        <foreach collection="list" item="pid" open="(" close=")" separator="," >
+           #{pid}
+        </foreach>
+    </delete>
+
+<!--    select * from user where id in-->
+<!--    <foreach collection="list" separator="," open="(" close=")" item="id">-->
+<!--        #{id}-->
+<!--    </foreach>-->
+
+    <!--根据条件搜索项目信息-->
+    <select id="getProjectByCond" resultMap="getProjectByCondMap">
+        select p.*,c.comname cus_comname,c.companyperson companyperson,e.ename,e.remark emp_remark from project p,customer c,employee e
+        <where>
+            <if test="cid==0">(ename like "%"#{keyword}"%" or c.comname like "%"#{keyword}"%" or pname like "%"#{keyword}"%" or companyperson like "%"#{keyword}"%") and p.comname=c.id and p.emp_fk=e.eid</if>
+            <if test="cid==1">pname like "%"#{keyword}"%" and p.comname=c.id and p.emp_fk=e.eid</if>
+            <if test="cid==2">c.comname like "%"#{keyword}"%" and p.comname=c.id and p.emp_fk=e.eid</if>
+            <if test="cid==3">ename like "%"#{keyword}"%" and p.comname=c.id and p.emp_fk=e.eid</if>
+            <if test="cid==4">companyperson like "%"#{keyword}"%" and p.comname=c.id and p.emp_fk=e.eid</if>
+            <if test="oid==1">order by pid desc</if>
+            <if test="oid==2">order by starttime desc</if>
+        </where>
+    </select>
+    <resultMap id="getProjectByCondMap" type="Project" extends="BaseResultMap">
+        <result column="cus_comname" property="customer.comname" />
+        <result column="companyperson" property="customer.companyperson" />
+        <result column="ename" property="employee.ename" />
+    </resultMap>
+
+    <!--单表查询项目的信息-->
+    <select id="queryPro" resultType="Project">
+        select * from project where pid=#{id}
+    </select>
+
+    <!--查询项目的信息-->
+    <select id="getPro" resultMap="getProMap">
+        select * from project where pid=#{id}
+    </select>
+    <resultMap id="getProMap" type="Project" extends="BaseResultMap">
+        <association property="customer" javaType="Customer" column="comname"
+         select="com.ujiuye.cus.mapper.CustomerMapper.getCustomer"></association>
+        <association property="employee" javaType="Employee" column="emp_fk"
+         select="com.ujiuye.emp.mapper.EmployeeMapper.getEmpByEid"></association>
+    </resultMap>
+    
+
+    <update id="updatePro">
+      update project
+      set pname = #{pname},comname = #{comname},emp_fk1 = #{emp_fk1},empcount = #{empcount},starttime = #{starttime},
+      buildtime = #{buildtime},cost = #{cost},level = #{level},endtime = #{endtime},remark = #{remark},emp_fk = #{emp_fk}
+      where pid = #{pid}
+    </update>
+
+    <insert id="insertPro">
+        insert into project (pid,pname,comname,emp_fk1,empcount,starttime,buildtime,cost,level,
+        endtime,remark,emp_fk)
+        values (#{pid}, #{pname}, #{comname},
+      #{emp_fk1}, #{empcount}, #{starttime},
+      #{buildtime}, #{cost}, #{level},
+      #{endtime}, #{remark}, #{emp_fk})
+    </insert>
+
+
+    <!--查询项目全部信息(一对一查询)-->
+    <select id="getAllProject" resultMap="Map01">
+        select * from project
+    </select>
+    <resultMap id="Map01" type="Project" extends="BaseResultMap">
+        <association property="customer" javaType="Customer" column="comname"
+        select="com.ujiuye.cus.mapper.CustomerMapper.getCustomer"></association>
+        <association property="employee" javaType="Employee" column="emp_fk"
+        select="com.ujiuye.emp.mapper.EmployeeMapper.getEmpByEid"></association>
+    </resultMap>
+
+
+    <!--获取没有需求文档的项目-->
+    <select id="getProByAna" resultType="Project">
+        select * from project where pid not in (select id from analysis)
+    </select>
+
+
+
+    <resultMap id="BaseResultMap" type="Project" >
+        <id column="pid" property="pid"/>
+        <result column="pname" property="pname"/>
+        <result column="comname" property="comname"/>
+        <result column="emp_fk1" property="emp_fk1"/>
+        <result column="empcount" property="empcount" />
+        <result column="starttime" property="starttime"/>
+        <result column="buildtime" property="buildtime"/>
+        <result column="cost" property="cost"/>
+        <result column="level" property="level"/>
+        <result column="endtime" property="endtime"/>
+        <result column="remark" property="remark"/>
+        <result column="emp_fk" property="emp_fk"/>
+    </resultMap>
+
+
+</mapper>

@@ -1,0 +1,60 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ujiuye.pro.mapper.AnalysisMapper">
+
+    <!--批量删除-->
+    <delete id="delInfo" parameterType="java.util.List">
+        delete from analysis where id in
+        <foreach collection="list" item="idd" open="(" close=")" separator="," >
+            #{idd}
+        </foreach>
+    </delete>
+
+    <!--修改需求分析-->
+    <update id="updateInfo">
+        update analysis set title=#{title},simpledis=#{simpledis},detaileddis=#{detaileddis},remark=#{remark},
+        updatetime=#{updatetime} where id=#{id}
+    </update>
+
+    <insert id="insertInfo">
+        insert into analysis values(#{id},#{proname},#{title},#{simpledis},
+        #{detaileddis},#{addtime},#{updatetime},#{remark})
+    </insert>
+
+<!--    &lt;!&ndash; 查询全部的需求分析&ndash;&gt;-->
+<!--    <select id="getAllInfo" resultType="Analysis">-->
+<!--        select * from analysis-->
+<!--    </select>-->
+
+    <!-- 查询单个需求分析的详细信息-->
+    <select id="getAnalysisDetail" resultMap="getAnalysisDetailMap">
+        select a.*,p.pname from analysis a,project p where a.id=#{id} and a.id=p.pid
+    </select>
+    <resultMap id="getAnalysisDetailMap" type="Analysis" extends="BaseResultMap">
+        <result column="pname" property="project.pname"></result>
+    </resultMap>
+
+
+    <!-- 查询需求分析的详细信息-->
+    <select id="getAllInfo" resultMap="getAllInfoMap">
+        select * from analysis
+    </select>
+    <resultMap id="getAllInfoMap" type="Analysis" extends="BaseResultMap">
+        <association property="project" column="id" javaType="Project"
+         select="com.ujiuye.pro.mapper.ProjectMapper.queryPro"></association>
+    </resultMap>
+
+
+
+    <resultMap id="BaseResultMap" type="com.ujiuye.pro.bean.Analysis" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="proname" property="proname" jdbcType="VARCHAR" />
+        <result column="title" property="title" jdbcType="VARCHAR" />
+        <result column="simpledis" property="simpledis" jdbcType="VARCHAR" />
+        <result column="detaileddis" property="detaileddis" jdbcType="VARCHAR" />
+        <result column="addtime" property="addtime" jdbcType="DATE" />
+        <result column="updatetime" property="updatetime" jdbcType="DATE" />
+        <result column="remark" property="remark" jdbcType="VARCHAR" />
+    </resultMap>
+</mapper>
